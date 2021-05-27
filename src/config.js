@@ -1,4 +1,4 @@
-const gsheet = require('google-spreadsheet');
+const { GoogleSpreadsheet } = require('google-spreadsheet');
 const util = require('util');
 
 class Config {
@@ -10,28 +10,22 @@ class Config {
 
     async fetchSheet() {
         // Prepare sheet
-        let sheet = new gsheet(this.spreadsheetId);
+        let doc = new GoogleSpreadsheet(this.spreadsheetId);
 
-        const useServiceAccountAuth = util.promisify(sheet.useServiceAccountAuth.bind(this));
-        const getInfo = util.promisify(sheet.getInfo.bind(this));
+        // Initialize Auth - see more available options at https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication
+        await doc.useServiceAccountAuth({
+            client_email: this.clientEmail,
+            private_key: this.privateKey
+        });
 
-        await useServiceAccountAuth({ client_email:this.clientEmail, private_key:this.privateKey });
-        let sheetInfo = await getInfo();
+        await doc.loadInfo();
 
-        return sheetInfo.worksheets[0];
+        return doc.sheetsByIndex[0];
     }
 
     async getRows() {
         let sheet = await this.fetchSheet();
-        const getRows = util.promisify(sheet.getRows.bind(this));
-        const getCells = util.promisify(sheet.getCells.bind(this));
-        let rows = await getRows({});
-        await getCells({
-            'min-row': 1,
-            'max-row': 1,
-            'return-empty': true
-        });
-        return rows;
+        return await sheet.getRows();
     }
 
     async findRow(location, alert) {
@@ -44,7 +38,6 @@ class Config {
             }
         });
         return result;
-
     }
 
     async getRecipients(location, alert) {

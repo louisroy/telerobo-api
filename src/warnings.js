@@ -10,8 +10,9 @@ class Warnings {
 
     startScan(key) {
         if (!this.scanner[key]) {
-            console.debug(`Setting up a scanner for '${key}' every ${process.env.SCAN_INTERVAL_MINUTES} minutes.`);
-            this.scanner[key] = setInterval(this.scan.bind(this, key), process.env.SCAN_INTERVAL_MINUTES * 60 * 1000);
+            const interval = process.env.SCAN_INTERVAL_MINUTES || 30;
+            console.debug(`Setting up a scanner for '${key}' every ${interval} minutes.`);
+            this.scanner[key] = setInterval(this.scan.bind(this, key), interval * 60 * 1000);
         }
 
         this.scan(key);
